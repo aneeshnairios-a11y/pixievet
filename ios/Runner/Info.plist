@@ -29,15 +29,6 @@
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
 	<key>UISupportedInterfaceOrientations</key>
-	<key>NSAppTransportSecurity</key>
-	<key>NSCameraUsageDescription</key>
-	<string>Camera access is required to take pet photo</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Photo library access is required to choose pet photo</string>
-	<dict>
-  		<key>NSAllowsArbitraryLoads</key>
-  		<true/>
-	</dict>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
 		<string>UIInterfaceOrientationLandscapeLeft</string>
