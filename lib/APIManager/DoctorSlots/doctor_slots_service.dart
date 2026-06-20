@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/APIUtils/api_service_manager.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
-import 'package:pixievet/APIManager/DoctorSlots/doctor_slots_request_model.dart';
-import 'package:pixievet/APIManager/DoctorSlots/doctor_slots_response_model.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_service_manager.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/DoctorSlots/doctor_slots_request_model.dart';
+import 'package:pixievet_app/APIManager/DoctorSlots/doctor_slots_response_model.dart';
 
 class DoctorSlotsService {
   final ApiServiceManager _apiManager = ApiServiceManager();

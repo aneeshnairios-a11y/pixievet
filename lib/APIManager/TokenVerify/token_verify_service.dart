@@ -2,8 +2,8 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:pixievet/APIManager/TokenVerify/token_verify_request_model.dart';
-import 'package:pixievet/APIManager/TokenVerify/token_verify_response_model.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_request_model.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_response_model.dart';
 
 class TokenVerifyService {
   static const String _url = 'https://pixievet.vercel.app/auth/token/expiry';

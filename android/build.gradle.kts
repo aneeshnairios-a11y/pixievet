@@ -1,3 +1,15 @@
+// Top-level build.gradle.kts (project-level)
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.1.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.0")
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -5,6 +17,7 @@ allprojects {
     }
 }
 
+// Redirect build directories if needed
 val newBuildDir: Directory =
     rootProject.layout.buildDirectory
         .dir("../../build")

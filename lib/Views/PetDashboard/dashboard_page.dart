@@ -1,342 +1,398 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/PetDashboard/petdashboard_response_model.dart';
-import 'package:pixievet/Views/PetDashboard/BookAppointment/book_appointment_page.dart';
-import 'package:pixievet/Views/PetDashboard/PetProfile/pet_profile_page.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/Utilities/app_images.dart';
+import 'package:pixievet_app/APIManager/PetDashboard/petdashboard_response_model.dart';
+import 'package:pixievet_app/Views/PetDashboard/BookAppointment/book_appointment_page.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/app_images.dart';
+import 'package:pixievet_app/Utilities/date_time_utils.dart';
 
-class PetDashboardPage extends StatefulWidget {
+class PetDashboardPage extends StatelessWidget {
   final PetDashboardResponseModel dashboardData;
 
   const PetDashboardPage({super.key, required this.dashboardData});
 
   @override
-  State<PetDashboardPage> createState() => _PetDashboardPageState();
-}
-
-class _PetDashboardPageState extends State<PetDashboardPage> {
-  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(context),
-      body: _buildDashboardUI(widget.dashboardData),
-    );
-  }
-
-  // ---------------- AppBar ----------------
-
-  AppBar _buildAppBar(BuildContext context) {
-    return AppBar(
-      elevation: 0,
-      backgroundColor: AppColors.background,
-      surfaceTintColor: AppColors.background,
-      leading: IconButton(
-        icon: const Icon(Icons.person_outline),
-        color: AppColors.textPrimary,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const PetProfilePage()),
-          );
-        },
-      ),
-      title: ShaderMask(
-        shaderCallback: (bounds) => LinearGradient(
-          colors: [AppColors.primary, AppColors.textSecondary],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ).createShader(Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-        child: Text(
-          'Hi Dr.${widget.dashboardData.ownerName}',
-          style: GoogleFonts.poppins(
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            color: Colors.white, // will be replaced by gradient
-          ),
-        ),
-      ),
-      centerTitle: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.notifications_none),
-          color: AppColors.textPrimary,
-          onPressed: () {},
-        ),
-      ],
-    );
-  }
-
-  // ---------------- Main UI ----------------
-
-  Widget _buildDashboardUI(PetDashboardResponseModel dashboardData) {
     final hasAppointments = dashboardData.appointments.isNotEmpty;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Scaffold(
+      body: Stack(
         children: [
-          const SizedBox(height: 16),
-
-          // Banner
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Container(
-              height: 150,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(18),
-                image: DecorationImage(
-                  image: AssetImage(AppImages.appBanner),
-                  fit: BoxFit.contain,
-                ),
+          // ---------------- Full Background ----------------
+          Container(
+            decoration: const BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage(AppImages.dahboardBg), // full bg image
+                fit: BoxFit.cover,
               ),
             ),
           ),
 
-          // ✅ Show only if appointments exist
-          if (hasAppointments) ...[
-            const SizedBox(height: 28),
-            _upcomingAppointmentSection(dashboardData),
-          ],
+          // ---------------- Content ----------------
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 12),
+                  // ---------------- Top Row: App Icon + Name + Notification ----------------
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Left: App Icon
+                      Image.asset(
+                        AppImages.appWhiteIcon,
+                        width: 35,
+                        height: 35,
+                      ),
 
-          const SizedBox(height: 28),
-          _bookAppointmentButton(),
+                      const SizedBox(width: 5),
 
-          const SizedBox(height: 32),
-          _dashboardGrid(),
+                      // Right: Title + Slogan
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'PixieVet',
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            Text(
+                              "Your pet's health - just a tap away",
+                              style: GoogleFonts.poppins(
+                                fontSize: 12,
+                                color: Colors.white70,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
-          const SizedBox(height: 24),
+                      // Right-most: Notification Icon
+                      IconButton(
+                        icon: const Icon(
+                          Icons.notifications_none,
+                          color: Colors.white,
+                        ),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // ---------------- Welcome Container ----------------
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.23),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hi 👋 ${dashboardData.ownerName}',
+                          style: GoogleFonts.poppins(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                            color: AppColors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "How’s Your Pet’s",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.white,
+                              ),
+                            ),
+                            Text(
+                              "Mood Today?",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.white,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // ---------------- Upcoming Treatment Header ----------------
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Upcoming Treatments',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to view all appointments
+                        },
+                        style: TextButton.styleFrom(
+                          backgroundColor: AppColors.white.withOpacity(
+                            0.1,
+                          ), // 5% opacity
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              20,
+                            ), // rounded corners
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 6,
+                          ),
+                        ),
+                        child: Text(
+                          'View All',
+                          style: GoogleFonts.poppins(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.primary.withOpacity(0.2),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  // ---------------- Upcoming Appointment Card / Placeholder ----------------
+                  Expanded(
+                    child: hasAppointments
+                        ? ListView.separated(
+                            itemCount: dashboardData.appointments.length,
+                            padding: const EdgeInsets.only(bottom: 12),
+                            separatorBuilder: (_, __) =>
+                                const SizedBox(height: 12),
+                            itemBuilder: (context, index) {
+                              final appointment =
+                                  dashboardData.appointments[index];
+                              return _upcomingAppointmentCard(appointment);
+                            },
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Image.asset(
+                                  AppImages.noAppointmentIcon,
+                                  width: 150,
+                                  height: 150,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'No bookings yet',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+
+                  // ---------------- Bottom Book Appointment Button ----------------
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const BookAppointmentPage(),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'Book Appointment',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  // ---------------- Upcoming Appointment ----------------
+  // ---------------- Appointment Card ----------------
+  Widget _upcomingAppointmentCard(AppointmentModel appointment) {
+    final doctor = appointment.doctorDetails;
 
-  Widget _upcomingAppointmentSection(PetDashboardResponseModel dashboardData) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            'Upcoming Appointments',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: _upcomingAppointmentCard(dashboardData),
-        ),
-      ],
-    );
-  }
-
-  Widget _upcomingAppointmentCard(PetDashboardResponseModel dashboardData) {
-    final appointment = dashboardData.appointments.first;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+        color: Colors.white, // ✅ solid white card
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          /// -------- Doctor Row --------
           Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                backgroundColor: AppColors.primary.withOpacity(0.1),
-                child: const Icon(Icons.person, color: AppColors.primary),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade200,
+                  borderRadius: BorderRadius.circular(12),
+                  image: null,
+                  // doctor.doctorProfileImageUrl != null &&
+                  //     doctor.doctorProfileImageUrl!.isNotEmpty
+                  // ? DecorationImage(
+                  //     image: NetworkImage(doctor.doctorProfileImageUrl!),
+                  //     fit: BoxFit.cover,
+                  //   )
+                  // : null,
+                ),
+                child:
+                    // doctor.doctorProfileImageUrl == null ||
+                    //     doctor.doctorProfileImageUrl!.isEmpty
+                    // ?
+                    Icon(Icons.person, size: 26, color: Colors.grey.shade500),
+                //: null,
               ),
+
               const SizedBox(width: 12),
+
               Expanded(
-                child: Text(
-                  'Dr. Rahul Sharma',
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Dr. ${doctor.name}',
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      doctor.specialization,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 14),
+
+          /// -------- Date + Time + Video --------
+          Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12, // slightly taller like the old one
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: AppColors.background, // same as old pill bg
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Text(
+                    '${DateTimeUtils.formatDateLong(appointment.date)} - '
+                    '${DateTimeUtils.convertTo12Hour(appointment.time)}',
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary, // same tone as before
+                    ),
                   ),
                 ),
               ),
+
+              const SizedBox(width: 10),
+
               Container(
+                height: 44,
+                padding: const EdgeInsets.symmetric(horizontal: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.videocam_outlined,
-                    color: AppColors.primary,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(14),
+                  onTap: () {
+                    // TODO: handle appointment.videoCall / link
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Call',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.videocam, color: Colors.white, size: 18),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '24 Dec 2025',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.access_time_outlined,
-                      size: 16,
-                      color: AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      '10:30 AM',
-                      style: GoogleFonts.poppins(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ],
-      ),
-    );
-  }
-
-  // ---------------- Book Appointment ----------------
-
-  Widget _bookAppointmentButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: SizedBox(
-        width: double.infinity,
-        height: 52,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const BookAppointmentPage()),
-            );
-          },
-          child: Text(
-            'Book Appointment',
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------- Dashboard Grid ----------------
-
-  Widget _dashboardGrid() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GridView.count(
-        crossAxisCount: 3,
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        children: const [
-          _DashboardGridItem(icon: Icons.receipt_long, title: 'Prescriptions'),
-          _DashboardGridItem(icon: Icons.history, title: 'Medical History'),
-          _DashboardGridItem(icon: Icons.payments_outlined, title: 'Payments'),
-          SizedBox.shrink(),
-          _DashboardGridItem(icon: Icons.info_outline, title: 'About Us'),
-          SizedBox.shrink(),
-        ],
-      ),
-    );
-  }
-}
-
-// ---------------- Grid Item ----------------
-
-class _DashboardGridItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-
-  const _DashboardGridItem({required this.icon, required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {},
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 26, color: AppColors.primary),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

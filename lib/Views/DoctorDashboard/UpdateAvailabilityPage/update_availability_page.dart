@@ -1,14 +1,17 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/CalendarUpdate/doctor_calendar_update_request_model.dart';
-import 'package:pixievet/APIManager/CalendarUpdate/doctor_calendar_update_service.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
+import 'package:pixievet_app/APIManager/CalendarUpdate/doctor_calendar_update_request_model.dart';
+import 'package:pixievet_app/APIManager/CalendarUpdate/doctor_calendar_update_service.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/Utilities/date_time_utils.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/APIManager/DoctorSlots/doctor_slots_service.dart';
-import 'package:pixievet/APIManager/DoctorSlots/doctor_slots_request_model.dart';
-import 'package:pixievet/APIManager/DoctorSlots/doctor_slots_response_model.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/APIManager/DoctorSlots/doctor_slots_service.dart';
+import 'package:pixievet_app/APIManager/DoctorSlots/doctor_slots_request_model.dart';
+import 'package:pixievet_app/APIManager/DoctorSlots/doctor_slots_response_model.dart';
 
 class UpdateAvailabilityPage extends StatefulWidget {
   const UpdateAvailabilityPage({super.key});
@@ -30,10 +33,19 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
 
   /// Slot offs for selected date
   Set<String> selectedSlots = {};
+
   bool _isSameDay(DateTime a, DateTime b) =>
       a.year == b.year && a.month == b.month && a.day == b.day;
 
-  Future<void> loadSlotsForDate(DateTime date) async {
+  @override
+  void initState() {
+    super.initState();
+    // Load slots for today if single-day slot mode
+    slotOffDate = focusedDay;
+    _loadSlotsForDate(focusedDay);
+  }
+
+  Future<void> _loadSlotsForDate(DateTime date) async {
     setState(() {
       isLoadingSlots = true;
       apiSlots.clear();
@@ -70,8 +82,12 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
       appBar: AppBar(
         title: Text(
           'Update Availability',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 18),
         ),
+        centerTitle: true,
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        automaticallyImplyLeading: false, // 🔥 Removes the back arrow
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -80,10 +96,7 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
           children: [
             _calendarSection(),
             const SizedBox(height: 20),
-
-            /// Show slots ONLY if exactly one date selected AND not full-day off
             if (slotOffDate != null && dayOffDates.isEmpty) _slotSection(),
-
             const SizedBox(height: 32),
             _saveButton(),
           ],
@@ -94,37 +107,49 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
 
   // ---------------- CALENDAR ----------------
   Widget _calendarSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Select Availability',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 12),
-        TableCalendar(
-          firstDay: DateTime.now(),
-          lastDay: DateTime.now().add(const Duration(days: 365)),
-          focusedDay: focusedDay,
-          selectedDayPredicate: (day) {
-            if (slotOffDate != null && _isSameDay(slotOffDate!, day)) {
-              return true;
-            }
-            return dayOffDates.any((d) => _isSameDay(d, day));
-          },
-          onDaySelected: _onDayTapped,
-          calendarStyle: CalendarStyle(
-            selectedDecoration: BoxDecoration(
-              color: Colors.red.shade400,
-              shape: BoxShape.circle,
-            ),
-            todayDecoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
           ),
+        ],
+      ),
+      child: TableCalendar(
+        firstDay: DateTime.now(),
+        lastDay: DateTime.now().add(const Duration(days: 365)),
+        focusedDay: focusedDay,
+        selectedDayPredicate: (day) {
+          if (slotOffDate != null && _isSameDay(slotOffDate!, day)) return true;
+          return dayOffDates.any((d) => _isSameDay(d, day));
+        },
+        onDaySelected: _onDayTapped,
+        calendarStyle: CalendarStyle(
+          selectedDecoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.3),
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primary, width: 2),
+          ),
+          todayDecoration: BoxDecoration(
+            color: AppColors.primary.withOpacity(0.2),
+            shape: BoxShape.circle,
+          ),
+          defaultTextStyle: const TextStyle(color: Colors.black87),
+          weekendTextStyle: const TextStyle(color: Colors.black87),
         ),
-      ],
+        headerStyle: const HeaderStyle(
+          formatButtonVisible: false,
+          titleCentered: true,
+          titleTextStyle: TextStyle(fontWeight: FontWeight.w600),
+          leftChevronIcon: Icon(Icons.chevron_left),
+          rightChevronIcon: Icon(Icons.chevron_right),
+        ),
+      ),
     );
   }
 
@@ -134,7 +159,6 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
 
       /// CASE 1: Slot mode active (single date with slots)
       if (slotOffDate != null) {
-        // If same date tapped → deselect everything
         if (_isSameDay(slotOffDate!, selectedDay)) {
           slotOffDate = null;
           selectedSlots.clear();
@@ -145,7 +169,6 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
             ..clear()
             ..add(slotOffDate!)
             ..add(selectedDay);
-
           slotOffDate = null;
           selectedSlots.clear();
         }
@@ -164,9 +187,7 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
         slotOffDate = dayOffDates.first;
         dayOffDates.clear();
         selectedSlots.clear();
-
-        // 🔥 LOAD SLOTS FROM API
-        loadSlotsForDate(slotOffDate!);
+        _loadSlotsForDate(slotOffDate!);
       }
 
       /// CASE 4: MORE THAN ONE date → full-day off mode
@@ -202,16 +223,15 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
-
         GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: apiSlots.length,
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3, // 👈 number of columns
+            crossAxisCount: 3,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: 2.6, // 👈 width / height ratio
+            childAspectRatio: 2.6,
           ),
           itemBuilder: (context, index) {
             final slot = apiSlots[index];
@@ -234,19 +254,22 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
                   color: isDisabled
                       ? Colors.grey.shade300
                       : isSelected
-                      ? Colors.red.shade400
+                      ? AppColors.primary.withOpacity(0.3)
                       : Colors.grey.shade200,
+                  border: isSelected
+                      ? Border.all(color: AppColors.primary, width: 2)
+                      : null,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  _convertTo12Hour(slot.slotTime),
+                  DateTimeUtils.convertTo12Hour(slot.slotTime),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: isDisabled
                         ? Colors.grey
                         : isSelected
-                        ? Colors.white
+                        ? AppColors.primary
                         : Colors.black,
                   ),
                 ),
@@ -265,6 +288,12 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
       height: 52,
       child: ElevatedButton(
         onPressed: _saveAvailability,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
         child: Text(
           'Save Availability',
           style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
@@ -284,12 +313,7 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
     /// FULL DAY OFFS (multiple dates)
     if (dayOffDates.isNotEmpty) {
       for (final date in dayOffDates) {
-        datesOff.add(
-          DoctorDateOff(
-            date: _formatDate(date), // ✅ dd/MM/yyyy
-            slots: [],
-          ),
-        );
+        datesOff.add(DoctorDateOff(date: _formatDate(date), slots: []));
       }
     }
 
@@ -297,8 +321,8 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
     if (slotOffDate != null) {
       datesOff.add(
         DoctorDateOff(
-          date: _formatDate(slotOffDate!), // ✅ dd/MM/yyyy
-          slots: selectedSlots.map(_convertTo24Hour).toList(),
+          date: _formatDate(slotOffDate!),
+          slots: selectedSlots.map(DateTimeUtils.convertTo24Hour).toList(),
         ),
       );
     }
@@ -320,43 +344,17 @@ class _UpdateAvailabilityPageState extends State<UpdateAvailabilityPage> {
     ).showSnackBar(SnackBar(content: Text(response.message)));
 
     if (response.status) {
-      Navigator.pop(context);
+      // ✅ Clear selections
+      selectedSlots.clear();
+      dayOffDates.clear();
+      // ✅ Reload slots for the focused day
+      if (slotOffDate != null) {
+        await _loadSlotsForDate(slotOffDate!);
+      } else {
+        await _loadSlotsForDate(focusedDay);
+      }
+      setState(() {}); // refresh the UI
     }
-  }
-
-  String _convertTo24Hour(String time) {
-    // If already in 24-hour format (e.g. "09:30")
-    if (!time.contains(' ')) {
-      return time;
-    }
-
-    // 12-hour format (e.g. "02:30 PM")
-    final parts = time.split(' ');
-    final timeParts = parts[0].split(':');
-
-    int hour = int.parse(timeParts[0]);
-    final int minute = int.parse(timeParts[1]);
-    final String period = parts[1].toUpperCase(); // AM / PM
-
-    if (period == 'PM' && hour != 12) {
-      hour += 12;
-    } else if (period == 'AM' && hour == 12) {
-      hour = 0;
-    }
-
-    return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
-  }
-
-  String _convertTo12Hour(String time24) {
-    final parts = time24.split(':');
-    int hour = int.parse(parts[0]);
-    final minute = parts[1];
-
-    final period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    hour = hour == 0 ? 12 : hour;
-
-    return '$hour:$minute $period';
   }
 
   String _formatDate(DateTime date) {

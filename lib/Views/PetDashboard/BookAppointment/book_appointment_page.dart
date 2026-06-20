@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/PatientSlots/patient_slots_request_model.dart';
-import 'package:pixievet/APIManager/PatientSlots/patient_slots_response_model.dart';
-import 'package:pixievet/APIManager/PatientSlots/patient_slots_service.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
-import 'package:pixievet/Views/PetDashboard/BookAppointment/booking_summary_page.dart';
+import 'package:pixievet_app/APIManager/PatientSlots/patient_slots_request_model.dart';
+import 'package:pixievet_app/APIManager/PatientSlots/patient_slots_response_model.dart';
+import 'package:pixievet_app/APIManager/PatientSlots/patient_slots_service.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/date_time_utils.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
+import 'package:pixievet_app/Views/PetDashboard/BookAppointment/booking_summary_page.dart';
+
+import '../../../APIManager/UserProfile/user_profile_details_request_model.dart';
+import '../../../APIManager/UserProfile/user_profile_details_response_model.dart';
+import '../../../APIManager/UserProfile/user_profile_details_service.dart';
 
 class BookAppointmentPage extends StatefulWidget {
   const BookAppointmentPage({super.key});
@@ -20,12 +25,12 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
 
   List<PatientSlot> apiSlots = [];
   bool isLoadingSlots = false;
-  PatientSlot? selectedSlot;
+  String? selectedSlotTime;
 
   @override
   void initState() {
     super.initState();
-    _loadSlotsForDate(selectedDate); // ✅ Load today slots on entry
+    _loadSlotsForDate(selectedDate);
   }
 
   // ---------------- API CALL ----------------
@@ -34,7 +39,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
     setState(() {
       isLoadingSlots = true;
       apiSlots.clear();
-      selectedSlot = null;
+      selectedSlotTime = null;
     });
 
     final session = SessionManager();
@@ -43,13 +48,12 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
       userId: await session.getUserId() ?? '',
       token: await session.getToken() ?? '',
       deviceId: await DeviceUtils.getDeviceId(),
+      doctorId: await session.getDoctorId() ?? '',
       date:
           '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
-      doctorId: '',
     );
 
-    final service = PatientSlotsService();
-    final response = await service.fetchPatientSlots(request);
+    final response = await PatientSlotsService().fetchPatientSlots(request);
 
     if (!mounted) return;
 
@@ -124,7 +128,7 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
             lastDate: DateTime.now().add(const Duration(days: 90)),
             onDateChanged: (date) {
               setState(() => selectedDate = date);
-              _loadSlotsForDate(date); // ✅ Fetch slots on date change
+              _loadSlotsForDate(date);
             },
           ),
         ),
@@ -169,36 +173,27 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
           ),
           itemBuilder: (context, index) {
             final slot = apiSlots[index];
-            final isSelected = selectedSlot == slot;
-            final isDisabled = !slot.isAvailable;
+            final isSelected = selectedSlotTime == slot.slotTime;
 
             return GestureDetector(
-              onTap: isDisabled
-                  ? null
-                  : () {
-                      setState(() => selectedSlot = slot);
-                    },
+              onTap: () {
+                setState(() {
+                  selectedSlotTime = slot.slotTime;
+                });
+              },
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isDisabled
-                      ? Colors.grey.shade300
-                      : isSelected
-                      ? AppColors.primary
-                      : AppColors.white,
+                  color: isSelected ? AppColors.primary : AppColors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
                 child: Text(
-                  _convertTo12Hour(slot.slotTime),
+                  DateTimeUtils.convertTo12Hour(slot.slotTime),
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isDisabled
-                        ? Colors.grey
-                        : isSelected
-                        ? Colors.white
-                        : AppColors.textPrimary,
+                    color: isSelected ? Colors.white : AppColors.textPrimary,
                   ),
                 ),
               ),
@@ -214,58 +209,167 @@ class _BookAppointmentPageState extends State<BookAppointmentPage> {
   Widget _bottomActionBar() {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.white,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
-      child: SizedBox(
-        height: 48,
-        width: double.infinity,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+      child: Row(
+        children: [
+          // -------- AMOUNT --------
+          if (selectedSlotTime != null)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Amount',
+                  style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '₹500',
+                  style: GoogleFonts.poppins(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            ),
+
+          if (selectedSlotTime != null) const SizedBox(width: 16),
+
+          // -------- BOOK BUTTON --------
+          Expanded(
+            child: SizedBox(
+              height: 48,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                onPressed: selectedSlotTime == null
+                    ? null
+                    : () {
+                        _showPetSelector(context);
+                      },
+                child: Text(
+                  'Book Appointment',
+                  style: GoogleFonts.poppins(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                ),
+              ),
             ),
           ),
-          onPressed: selectedSlot == null
-              ? null
-              : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => BookingSummaryPage(
-                        selectedDate: selectedDate,
-                        selectedTime: _convertTo12Hour(selectedSlot!.slotTime),
-                        amount: 500,
-                      ),
-                    ),
-                  );
-                },
-          child: Text(
-            'Book Appointment',
-            style: GoogleFonts.poppins(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white,
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
 
-  // ---------------- UTILS ----------------
+  Future<void> _showPetSelector(BuildContext context) async {
+    final userId = await SessionManager().getUserId();
+    final token = await SessionManager().getToken();
+    final deviceId = await DeviceUtils.getDeviceId();
 
-  String _convertTo12Hour(String time24) {
-    final parts = time24.split(':');
-    int hour = int.parse(parts[0]);
-    final minute = parts[1];
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        return FutureBuilder<UserProfileDetailsResponseModel>(
+          future: UserProfileDetailsService().fetchUserProfile(
+            UserProfileDetailsRequestModel(
+              userId: userId ?? '',
+              token: token ?? '',
+              deviceId: deviceId,
+            ),
+          ),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
 
-    final period = hour >= 12 ? 'PM' : 'AM';
-    hour = hour % 12;
-    hour = hour == 0 ? 12 : hour;
+            final pets = snapshot.data!.pets;
 
-    return '$hour:$minute $period';
+            if (pets.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: Text('No pets found')),
+              );
+            }
+
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Select Pet',
+                    style: GoogleFonts.poppins(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+
+                  ListView.separated(
+                    shrinkWrap: true,
+                    itemCount: pets.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (context, index) {
+                      final pet = pets[index];
+
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: AppColors.primary.withOpacity(0.1),
+                          child: const Icon(
+                            Icons.pets,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        title: Text(
+                          pet.name,
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        subtitle: Text(
+                          '${pet.species} • ${pet.breed}',
+                          style: GoogleFonts.poppins(fontSize: 12),
+                        ),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => BookingSummaryPage(
+                                selectedDate: selectedDate,
+                                selectedTime: DateTimeUtils.convertTo12Hour(
+                                  selectedSlotTime!,
+                                ),
+                                amount: 500,
+                                petId: pet.id,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 }

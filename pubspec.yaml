@@ -1,4 +1,4 @@
-name: pixievet
+name: pixievet_app
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -40,7 +40,26 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   image_picker: ^1.0.7
   table_calendar: ^3.0.9
+  file_picker: ^8.0.0
+  flutter_launcher_icons: ^0.13.1
+  carousel_slider: ^5.0.0
+  flutter_native_splash: ^2.4.0
+ 
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icons/app_icon.png"
 
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: assets/images/splash.png
+
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/images/splash.png
+    icon_background_color: "#FFFFFF"
 
 dev_dependencies:
   flutter_test:
@@ -66,11 +85,19 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-    - assets/icons/pixievetlogo.png
     - assets/icons/googleIcon.png
-    - assets/icons/petbanner.png
-    - assets/icons/successimage.png
     - assets/icons/petavatar.png
+    - assets/icons/petbanner.png
+    - assets/icons/pixievetlogo.png
+    - assets/icons/successimage.png
+    - assets/icons/app_icon.png
+    - assets/images/splash_logo.png
+    - assets/images/app_background.png
+    - assets/icons/app_white_icon.png
+    - assets/icons/no_appopintment_icon.png
+    - assets/icons/checkbox_circle.png
+    - assets/images/dahboard_bg.png
+    - assets/images/splash.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

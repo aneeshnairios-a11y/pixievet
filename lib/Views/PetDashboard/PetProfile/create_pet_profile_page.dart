@@ -1,266 +1,37 @@
-// ignore_for_file: use_build_context_synchronously, deprecated_member_use
-
+// ignore_for_file: use_build_context_synchronously
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/CreatePetProfile/pet_profile_create_request_model.dart';
-import 'package:pixievet/APIManager/CreatePetProfile/pet_profile_create_service.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/APIManager/APIUtils/api_guard.dart';
-import 'package:pixievet/Utilities/app_alert.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
-import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:pixievet/app_init_page.dart';
+import 'package:intl/intl.dart';
 
-class CreatePetPetProfilePage extends StatefulWidget {
-  const CreatePetPetProfilePage({super.key});
+import '../../../APIManager/CreatePetProfile/pet_profile_create_request_model.dart';
+import '../../../APIManager/CreatePetProfile/pet_profile_create_service.dart';
+import '../../../Utilities/app_colors.dart';
+import '../../../app_init_page.dart';
+import 'owner_profile_model.dart';
+import 'vaccination_model.dart';
+import 'pet_form_model.dart';
+
+class CreatePetProfilePage extends StatefulWidget {
+  final OwnerProfileModel owner;
+
+  const CreatePetProfilePage({super.key, required this.owner});
 
   @override
-  State<CreatePetPetProfilePage> createState() =>
-      _CreatePetPetProfilePageState();
+  State<CreatePetProfilePage> createState() => _CreatePetProfilePageState();
 }
 
-class _CreatePetPetProfilePageState extends State<CreatePetPetProfilePage> {
-  final _formKey = GlobalKey<FormState>();
+class _CreatePetProfilePageState extends State<CreatePetProfilePage> {
+  final picker = ImagePicker();
 
-  // Controllers
-  final TextEditingController petNameCtrl = TextEditingController();
-  final TextEditingController breedCtrl = TextEditingController();
-  final TextEditingController ageCtrl = TextEditingController();
-  final TextEditingController weightCtrl = TextEditingController();
-  final TextEditingController vaccinationCtrl = TextEditingController();
-  final TextEditingController notesCtrl = TextEditingController();
+  final List<PetFormModel> pets = [PetFormModel()];
 
-  final TextEditingController ownerNameCtrl = TextEditingController();
-  final TextEditingController emailCtrl = TextEditingController();
-  final TextEditingController phoneCtrl = TextEditingController();
-
-  final ImagePicker _imagePicker = ImagePicker();
-  File? _petImageFile;
-
-  String selectedSpecies = 'Dog';
-  String selectedGender = 'Male';
-
-  final List<String> speciesList = [
-    'Dog',
-    'Cat',
-    'Cow',
-    'Goat',
-    'Horse',
-    'Bird',
-    'Other',
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          'Profile Details',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
-        ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _sectionTitle('Pet Details'),
-              _petImagePicker(),
-              _textField('Pet Name', petNameCtrl),
-              _speciesDropdown(),
-              _textField('Breed', breedCtrl),
-              _textField('Age', ageCtrl, keyboard: TextInputType.number),
-              _textField(
-                'Weight (Optional)',
-                weightCtrl,
-                keyboard: TextInputType.number,
-              ),
-              _genderSelector(),
-              _vaccinationField(),
-              _notesField(),
-
-              const SizedBox(height: 24),
-              _sectionTitle('Personal Details'),
-              _textField('Name', ownerNameCtrl),
-              _textField(
-                'Email',
-                emailCtrl,
-                keyboard: TextInputType.emailAddress,
-              ),
-              _textField(
-                'Phone Number',
-                phoneCtrl,
-                keyboard: TextInputType.phone,
-              ),
-
-              const SizedBox(height: 32),
-              _submitButton(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ---------------- UI Components ----------------
-
-  Widget _sectionTitle(String title) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600),
-      ),
-    );
-  }
-
-  Widget _textField(
-    String label,
-    TextEditingController controller, {
-    TextInputType keyboard = TextInputType.text,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: TextFormField(
-        controller: controller,
-        keyboardType: keyboard,
-        decoration: InputDecoration(
-          labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        validator: (value) {
-          if (label.contains('Optional')) return null;
-          if (value == null || value.isEmpty) {
-            return 'Please enter $label';
-          }
-          return null;
-        },
-      ),
-    );
-  }
-
-  Widget _speciesDropdown() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: DropdownButtonFormField<String>(
-        value: selectedSpecies,
-        items: speciesList
-            .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-            .toList(),
-        onChanged: (value) {
-          setState(() => selectedSpecies = value!);
-        },
-        decoration: InputDecoration(
-          labelText: 'Species',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-
-  Widget _genderSelector() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Gender',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
-          ),
-          Row(
-            children: [
-              Radio<String>(
-                value: 'Male',
-                groupValue: selectedGender,
-                onChanged: (value) {
-                  setState(() => selectedGender = value!);
-                },
-              ),
-              const Text('Male'),
-              Radio<String>(
-                value: 'Female',
-                groupValue: selectedGender,
-                onChanged: (value) {
-                  setState(() => selectedGender = value!);
-                },
-              ),
-              const Text('Female'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _vaccinationField() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextFormField(
-              controller: vaccinationCtrl,
-              decoration: InputDecoration(
-                labelText: 'Vaccination History',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.attach_file)),
-        ],
-      ),
-    );
-  }
-
-  Widget _notesField() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
-      child: TextFormField(
-        controller: notesCtrl,
-        maxLines: 4,
-        decoration: InputDecoration(
-          labelText: 'Notes',
-          alignLabelWithHint: true,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(ImageSource source) async {
-    try {
-      final XFile? pickedFile = await _imagePicker.pickImage(
-        source: source,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _petImageFile = File(pickedFile.path);
-        });
-      }
-    } catch (e) {
-      AppAlert.show(
-        context: context,
-        type: AlertType.warning,
-        title: "Image Error",
-        message: "Failed to pick image",
-      );
-    }
-  }
-
-  void _showImagePickerOptions() {
+  Future<void> _pickPetImages(PetFormModel pet) async {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (_) {
         return SafeArea(
@@ -269,18 +40,29 @@ class _CreatePetPetProfilePageState extends State<CreatePetPetProfilePage> {
             children: [
               ListTile(
                 leading: const Icon(Icons.camera_alt),
-                title: const Text("Take Photo"),
-                onTap: () {
+                title: const Text('Take Photo'),
+                onTap: () async {
                   Navigator.pop(context);
-                  _pickImage(ImageSource.camera);
+                  final image = await picker.pickImage(
+                    source: ImageSource.camera,
+                    imageQuality: 80,
+                  );
+                  if (image != null) {
+                    setState(() {
+                      pet.petImages.add(File(image.path));
+                    });
+                  }
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text("Choose from Gallery"),
-                onTap: () {
+                title: const Text('Choose from Gallery'),
+                onTap: () async {
                   Navigator.pop(context);
-                  _pickImage(ImageSource.gallery);
+                  final images = await picker.pickMultiImage(imageQuality: 80);
+                  setState(() {
+                    pet.petImages.addAll(images.map((e) => File(e.path)));
+                  });
                 },
               ),
             ],
@@ -290,103 +72,429 @@ class _CreatePetPetProfilePageState extends State<CreatePetPetProfilePage> {
     );
   }
 
-  Widget _petImagePicker() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: GestureDetector(
-          onTap: _showImagePickerOptions,
-          child: CircleAvatar(
-            radius: 45,
-            backgroundColor: Colors.grey.shade200,
-            backgroundImage: _petImageFile != null
-                ? FileImage(_petImageFile!)
-                : null,
-            child: _petImageFile == null
-                ? const Icon(Icons.camera_alt, size: 28, color: Colors.grey)
-                : null,
-          ),
-        ),
-      ),
+  Future<void> _pickDate(VaccinationModel model) async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: model.date ?? DateTime.now(),
+      firstDate: DateTime(2000), // allows previous dates
+      lastDate: DateTime(2100), // allows future dates ✅
     );
+
+    if (date != null) {
+      setState(() {
+        model.date = date;
+      });
+    }
   }
 
-  Widget _submitButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            _verifyTokenForSubmitProfile();
-          }
-        },
-        child: Text(
-          'Save Profile',
-          style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600),
-        ),
-      ),
-    );
+  void _addAnotherPet() {
+    setState(() {
+      pets.add(PetFormModel());
+    });
   }
 
-  Future<void> _verifyTokenForSubmitProfile() async {
-    final isValid = await ApiGuard.verifySession(context);
-    if (!isValid) return;
-
-    // ✅ Token valid → safe to call API
-    await _submitProfile();
-  }
-
-  Future<void> _submitProfile() async {
-    final service = PetProfileCreateService();
-
-    final userId = await SessionManager().getUserId();
-    if (userId == null || userId.isEmpty) {
-      AppAlert.show(
-        context: context,
-        type: AlertType.warning,
-        title: "Session Expired",
-        message: "Please login again",
-      );
-
-      return;
+  void _submitAllPets() async {
+    for (final pet in pets) {
+      if (!pet.formKey.currentState!.validate()) return;
     }
 
-    final deviceId = await DeviceUtils.getDeviceId();
-
-    final response = await service.createProfile(
-      PetProfileCreateRequestModel(
-        ownerName: ownerNameCtrl.text,
-        mobileNumber: phoneCtrl.text,
-        email: emailCtrl.text,
-        petName: petNameCtrl.text,
-        species: selectedSpecies,
-        breed: breedCtrl.text,
-        age: int.parse(ageCtrl.text),
-        gender: selectedGender,
-        weight: int.parse(weightCtrl.text),
-        vaccinationHistory: vaccinationCtrl.text,
-        notes: notesCtrl.text,
-        photoUrl: _petImageFile?.path ?? '',
-        documentsUrl: '',
-        userId: userId,
-        deviceId: deviceId,
+    final request = PetProfileCreateRequestModel(
+      ownerDetails: OwnerDetails(
+        name: widget.owner.fullName,
+        email: widget.owner.email,
+        number: widget.owner.mobile,
+        gender: widget.owner.gender,
       ),
+      petDetails: pets.map((pet) {
+        return PetDetails(
+          name: pet.petNameCtrl.text,
+          species: pet.species,
+          breed: pet.breedCtrl.text,
+          gender: pet.gender,
+          age: "${pet.yearCtrl.text}.${pet.monthCtrl.text}",
+          weight: "${pet.kgCtrl.text}.${pet.gmCtrl.text}",
+          notes: pet.notesCtrl.text,
+          images: pet.petImages,
+          vaccination: [
+            if (pet.rabies.isSelected)
+              VaccinationDetails(
+                rabbies: true,
+                expDate: pet.rabies.date != null
+                    ? DateFormat('dd/MM/yyyy').format(pet.rabies.date!)
+                    : null,
+              ),
+            if (pet.dhppi.isSelected)
+              VaccinationDetails(
+                ddhp: true,
+                expDate: pet.rabies.date != null
+                    ? DateFormat('dd/MM/yyyy').format(pet.rabies.date!)
+                    : null,
+              ),
+            if (pet.kennel.isSelected) VaccinationDetails(kenneCough: true),
+          ],
+        );
+      }).toList(),
+      profileImage: widget.owner.profileImage,
+      userId: "string",
+      deviceId: "string",
+      token: "string",
     );
 
-    if (response.status && response.isProfileCreated) {
+    final service = PetProfileCreateService();
+    final response = await service.createProfile(request);
+
+    if (response.status) {
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const AppInitPage()),
+        MaterialPageRoute(
+          builder: (_) => const AppInitPage(fromLoginFlow: true),
+        ),
         (_) => false,
       );
     } else {
-      AppAlert.show(
-        context: context,
-        type: AlertType.warning,
-        title: "Profile Creation Failed",
-        message: response.message,
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response.message)));
     }
+  }
+
+  @override
+  void dispose() {
+    for (final pet in pets) {
+      pet.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: const Text('Create Pet’s Profile'),
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            ...pets.asMap().entries.map(
+              (entry) => _petSection(entry.key, entry.value),
+            ),
+
+            const SizedBox(height: 16),
+
+            /// ➕ ADD PET
+            OutlinedButton.icon(
+              onPressed: _addAnotherPet,
+              icon: const Icon(Icons.add),
+              label: const Text('Add Another Pet'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: BorderSide(color: AppColors.primary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            /// ✅ SUBMIT
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _submitAllPets,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Submit All Pets',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ================= PET UI (UNCHANGED DESIGN) =================
+
+  Widget _petSection(int index, PetFormModel pet) {
+    return Form(
+      key: pet.formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Pet ${index + 1}',
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          _field(
+            'Pet Name *',
+            pet.petNameCtrl,
+            hint: 'Enter pet name',
+            keyboardType: TextInputType.name,
+          ),
+          _dropdown('Species', pet),
+          _field(
+            'Breed *',
+            pet.breedCtrl,
+            hint: 'Eg: Labrador',
+            keyboardType: TextInputType.name,
+          ),
+
+          const SizedBox(height: 8),
+          _genderField(pet),
+          const SizedBox(height: 12),
+
+          Row(
+            children: [
+              Expanded(
+                child: _field(
+                  'Years',
+                  pet.yearCtrl,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _field(
+                  'Months',
+                  pet.monthCtrl,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+
+          Row(
+            children: [
+              Expanded(
+                child: _field(
+                  'Kg',
+                  pet.kgCtrl,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _field(
+                  'Gms',
+                  pet.gmCtrl,
+                  keyboardType: TextInputType.number,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+          _vaccine('Rabies', pet.rabies),
+          _vaccine('DHPPi+L', pet.dhppi),
+          _vaccine('Kennel Cough', pet.kennel),
+
+          const SizedBox(height: 12),
+          _notes(pet),
+
+          const SizedBox(height: 16),
+          Text('Add Pet Images'),
+          Wrap(
+            spacing: 8,
+            children: [
+              ...pet.petImages.map(
+                (e) => Image.file(e, width: 70, height: 70, fit: BoxFit.cover),
+              ),
+              InkWell(
+                onTap: () => _pickPetImages(pet),
+                child: Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.add),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  // ================= COMMON WIDGETS =================
+
+  Widget _field(
+    String label,
+    TextEditingController ctrl, {
+    String? hint,
+    TextInputType? keyboardType, // Added this
+  }) {
+    final required = label.contains('*');
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: ctrl,
+            keyboardType: keyboardType, // Use the optional keyboard type
+            decoration: InputDecoration(
+              hintText: hint ?? label.replaceAll('*', ''),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
+            validator: (v) =>
+                required && (v == null || v.isEmpty) ? 'Required' : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _dropdown(String label, PetFormModel pet) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          DropdownButtonFormField<String>(
+            initialValue: pet.species,
+            items: const [
+              'Dog',
+              'Cat',
+              'Goat',
+              'Other',
+            ].map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            onChanged: (v) => setState(() => pet.species = v!),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _notes(PetFormModel pet) {
+    return TextFormField(
+      controller: pet.notesCtrl,
+      maxLines: 4,
+      decoration: InputDecoration(
+        hintText: 'Notes',
+        filled: true,
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
+
+  Widget _genderField(PetFormModel pet) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Gender *',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+            ),
+          ),
+          Row(
+            children: ['Male', 'Female'].map((e) {
+              return Expanded(
+                child: RadioListTile<String>(
+                  title: Text(e),
+                  value: e,
+                  groupValue: pet.gender,
+                  activeColor: AppColors.primary,
+                  onChanged: (v) => setState(() => pet.gender = v!),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _vaccine(String title, VaccinationModel model) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Row(
+        children: [
+          Checkbox(
+            value: model.isSelected,
+            activeColor: AppColors.primary,
+            onChanged: (v) => setState(() => model.isSelected = v!),
+          ),
+          Expanded(child: Text(title)),
+          TextButton(
+            onPressed: model.isSelected ? () => _pickDate(model) : null,
+            child: Text(
+              model.date == null
+                  ? 'Select date'
+                  : '${model.date!.day}/${model.date!.month}/${model.date!.year}',
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

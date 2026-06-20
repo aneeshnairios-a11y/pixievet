@@ -1,3 +1,5 @@
+import 'dart:io';
+
 class DoctorProfileRequestModel {
   final String userId;
   final String token;
@@ -7,6 +9,7 @@ class DoctorProfileRequestModel {
   final String specialization;
   final int experienceYears;
   final String licenseNumber;
+  final File? profileImage;
 
   DoctorProfileRequestModel({
     required this.userId,
@@ -17,18 +20,6 @@ class DoctorProfileRequestModel {
     required this.specialization,
     required this.experienceYears,
     required this.licenseNumber,
+    this.profileImage,
   });
-
-  Map<String, dynamic> toJson() {
-    return {
-      'user_id': userId,
-      'token': token,
-      'device_id': deviceId,
-      'name': name,
-      'email': email,
-      'specialization': specialization,
-      'experience_years': experienceYears,
-      'license_number': licenseNumber,
-    };
-  }
 }

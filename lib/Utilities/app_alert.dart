@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
 
 enum AlertType { warning, success, failure }
 

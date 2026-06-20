@@ -1,9 +1,9 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/DoctorDashboard/doctor_dashboard_response_model.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
-import 'package:pixievet/APIManager/APIUtils/api_service_manager.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
+import 'package:pixievet_app/APIManager/DoctorDashboard/doctor_dashboard_response_model.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_service_manager.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
 
 class DoctorDashboardService {
   final ApiServiceManager _apiManager = ApiServiceManager();
@@ -20,10 +20,12 @@ class DoctorDashboardService {
         body: {'user_id': userId, 'token': token, 'device_id': deviceId},
       );
 
+      /// Parse API response
       final dashboardResponse = DoctorDashboardResponseModel.fromJson(
         response.data,
       );
 
+      /// API-level failure
       if (!dashboardResponse.status) {
         return DoctorDashboardResponseModel.failure(
           'Failed to fetch doctor dashboard',
@@ -35,7 +37,7 @@ class DoctorDashboardService {
       return DoctorDashboardResponseModel.failure(
         e.response?.data?['message'] ?? 'Network error. Please try again.',
       );
-    } catch (_) {
+    } catch (e) {
       return DoctorDashboardResponseModel.failure('Unexpected error occurred');
     }
   }

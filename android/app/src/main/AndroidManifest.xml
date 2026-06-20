@@ -4,8 +4,9 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
     
     <application
-        android:label="pixievet"
+        android:label="Pixievet"
         android:name="${applicationName}"
+        android:theme="@style/LaunchTheme"
         android:icon="@mipmap/ic_launcher"
         android:enableOnBackInvokedCallback="true">
         <activity

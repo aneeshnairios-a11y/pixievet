@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/Utilities/app_images.dart';
-import 'package:pixievet/app_init_page.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/app_images.dart';
+import 'package:pixievet_app/app_init_page.dart';
 
 class BookingSuccessPage extends StatelessWidget {
   const BookingSuccessPage({super.key});
@@ -21,17 +21,28 @@ class BookingSuccessPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Image.asset(AppImages.bookingSuccess, height: 180),
+                    Image.asset(AppImages.checkboxCircle, height: 90),
 
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 28),
 
                     Text(
-                      'Your booking is\nsuccessfully placed',
+                      '₹500',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    Text(
+                      'Your booking is successfully placed',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
                       ),
                     ),
 
@@ -63,7 +74,9 @@ class BookingSuccessPage extends StatelessWidget {
                   onPressed: () {
                     Navigator.pushAndRemoveUntil(
                       context,
-                      MaterialPageRoute(builder: (_) => const AppInitPage()),
+                      MaterialPageRoute(
+                        builder: (_) => const AppInitPage(fromLoginFlow: true),
+                      ),
                       (_) => false,
                     );
                   },

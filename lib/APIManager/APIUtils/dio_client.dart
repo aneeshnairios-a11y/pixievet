@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();

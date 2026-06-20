@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/Login/login_request_model.dart';
-import 'package:pixievet/APIManager/Login/login_response_model.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
-import 'package:pixievet/APIManager/APIUtils/api_service_manager.dart';
+import 'package:pixievet_app/APIManager/Login/login_request_model.dart';
+import 'package:pixievet_app/APIManager/Login/login_response_model.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_service_manager.dart';
 
 class LoginService {
   final ApiServiceManager _apiManager = ApiServiceManager();

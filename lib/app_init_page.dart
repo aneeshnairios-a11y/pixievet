@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:pixievet/APIManager/DoctorDashboard/doctor_dashboard_service.dart';
-import 'package:pixievet/APIManager/PetDashboard/pet_dashboard_service.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/APIManager/TokenVerify/token_verify_request_model.dart';
-import 'package:pixievet/APIManager/TokenVerify/token_verify_service.dart';
-import 'package:pixievet/Views/DoctorDashboard/doctor_dashboard.dart';
-import 'package:pixievet/Views/PetDashboard/dashboard_page.dart';
-import 'package:pixievet/Views/Login/login_page.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
+import 'package:pixievet_app/APIManager/DoctorDashboard/doctor_dashboard_service.dart';
+import 'package:pixievet_app/APIManager/PetDashboard/pet_dashboard_service.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_request_model.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_service.dart';
+import 'package:pixievet_app/Views/DoctorDashboard/doctor_dashboard.dart';
+import 'package:pixievet_app/Views/PetDashboard/dashboard_page.dart';
+import 'package:pixievet_app/Views/Login/login_page.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
+
+import 'Views/DoctorDashboard/main_doctor_page.dart';
+import 'Views/PetDashboard/main_pet_page.dart';
 
 // 👉 import doctor dashboard + service when ready
 // import 'package:pixievet/DoctorDashboard/doctor_dashboard_page.dart';
@@ -15,8 +18,9 @@ import 'package:pixievet/Utilities/device_utils.dart';
 
 class AppInitPage extends StatefulWidget {
   final bool fromLoginFlow;
+  final bool? isDoctor; // 👈 add this
 
-  const AppInitPage({super.key, this.fromLoginFlow = false});
+  const AppInitPage({super.key, this.fromLoginFlow = false, this.isDoctor});
 
   @override
   State<AppInitPage> createState() => _AppInitPageState();
@@ -34,20 +38,27 @@ class _AppInitPageState extends State<AppInitPage> {
 
     final token = await session.getToken();
     final userId = await session.getUserId();
+    final doctorId = await session.getDoctorId();
 
-    // ❌ No session → Login
-    if (token == null || userId == null) {
+    // ✅ Resolve doctor flag safely
+    final bool isDoctor = widget.isDoctor ?? await session.isDoctor();
+
+    // ❌ No session check
+    if (token == null || (isDoctor ? doctorId == null : userId == null)) {
       _goToLogin();
       return;
     }
 
+    // ✅ Pick correct ID safely (non-null now)
+    final String activeUserId = isDoctor ? doctorId! : userId!;
+
     try {
       final deviceId = await DeviceUtils.getDeviceId();
 
-      // 🔐 Step 1: Verify Token
+      // 🔐 Token Verify
       final verifyResponse = await TokenVerifyService().verifyToken(
         TokenVerifyRequestModel(
-          userId: userId,
+          userId: activeUserId,
           token: token,
           deviceId: deviceId,
         ),
@@ -59,9 +70,6 @@ class _AppInitPageState extends State<AppInitPage> {
         return;
       }
 
-      // 👤 Step 2: Check role
-      final bool isDoctor = await session.isDoctor();
-
       if (!mounted) return;
 
       // 🩺 Doctor Flow
@@ -71,14 +79,15 @@ class _AppInitPageState extends State<AppInitPage> {
 
         if (!mounted) return;
 
-        Navigator.push(
+        Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) => DoctorDashboardPage(dashboardData: doctorDashboard),
+            builder: (_) => MainDoctorPage(dashboardData: doctorDashboard),
           ),
+          (_) => false,
         );
       }
-      // 🐶 Pet Owner Flow
+      // 🐶 Pet Flow
       else {
         final petDashboard = await PetDashboardService().fetchPetDashboard();
 
@@ -87,7 +96,7 @@ class _AppInitPageState extends State<AppInitPage> {
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
-            builder: (_) => PetDashboardPage(dashboardData: petDashboard),
+            builder: (_) => MainPetPage(dashboardData: petDashboard),
           ),
           (_) => false,
         );

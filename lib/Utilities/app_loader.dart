@@ -40,7 +40,7 @@ class _LoaderOverlay extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

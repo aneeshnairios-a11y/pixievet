@@ -2,22 +2,28 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/APIManager/VerifyOtp/verifyotp_request_model.dart';
-import 'package:pixievet/APIManager/VerifyOtp/verifyotp_service.dart';
-import 'package:pixievet/Views/DoctorDashboard/DoctorProfile/create_doctor_profile_page.dart';
-import 'package:pixievet/Views/PetDashboard/PetProfile/create_pet_profile_page.dart';
-import 'package:pixievet/Utilities/app_alert.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/Utilities/app_images.dart';
-import 'package:pixievet/Utilities/app_loader.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
-import 'package:pixievet/app_init_page.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/APIManager/VerifyOtp/verifyotp_request_model.dart';
+import 'package:pixievet_app/APIManager/VerifyOtp/verifyotp_service.dart';
+import 'package:pixievet_app/Views/DoctorDashboard/DoctorProfile/create_doctor_profile_page.dart';
+import 'package:pixievet_app/Utilities/app_alert.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/app_images.dart';
+import 'package:pixievet_app/Utilities/app_loader.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
+import 'package:pixievet_app/app_init_page.dart';
+
+import '../PetDashboard/PetProfile/owner_profile_page.dart';
 
 class OtpVerificationPage extends StatefulWidget {
   final String mobileNumber;
+  final String otp;
 
-  const OtpVerificationPage({super.key, required this.mobileNumber});
+  const OtpVerificationPage({
+    super.key,
+    required this.mobileNumber,
+    required this.otp,
+  });
 
   @override
   State<OtpVerificationPage> createState() => _OtpVerificationPageState();
@@ -39,6 +45,23 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
       n.dispose();
     }
     super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // 🔹 Auto-fill OTP digits
+    if (widget.otp.length == 6) {
+      for (int i = 0; i < 6; i++) {
+        _controllers[i].text = widget.otp[i];
+      }
+
+      // Move focus to last field
+      Future.delayed(const Duration(milliseconds: 100), () {
+        _focusNodes[5].requestFocus();
+      });
+    }
   }
 
   Future<void> _verifyOtp() async {
@@ -98,10 +121,18 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
                 ),
               );
             } else {
-              Navigator.pushReplacement(
+              // Navigator.pushReplacement(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) =>
+              //         CreatePetPetProfilePage(phoneNumber: widget.mobileNumber),
+              //   ),
+              // );
+              Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => const CreatePetPetProfilePage(),
+                  builder: (_) =>
+                      OwnerProfilePage(phoneNumber: widget.mobileNumber),
                 ),
               );
             }
@@ -131,146 +162,198 @@ class _OtpVerificationPageState extends State<OtpVerificationPage> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.textPrimary),
-      ),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
+      body: Stack(
+        children: [
+          // 🔹 Background Image
+          SizedBox(
+            width: size.width,
+            height: size.height,
+            child: Image.asset(AppImages.appBackground, fit: BoxFit.cover),
+          ),
+
+          // 🔹 Bottom Sheet
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              height: size.height * 0.55,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 30),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    offset: Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 8),
+                    // 🔹 Title
+                    Text(
+                      "Verification",
+                      style: GoogleFonts.poppins(
+                        fontSize: 26,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // 🔹 Subtitle
+                    Column(
                       children: [
-                        // 🔹 App Logo
-                        Image.asset(AppImages.appLogo, height: 100),
-
-                        const SizedBox(height: 32),
-
-                        // 🔹 Title
                         Text(
-                          "Enter the OTP",
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // 🔹 Subtitle
-                        Text(
-                          "We sent OTP code to your mobile number",
+                          "Enter the verification code we sent to your",
                           textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: AppColors.textSecondary,
                           ),
                         ),
-
-                        const SizedBox(height: 8),
-
+                        const SizedBox(height: 4),
                         Text(
-                          "+91 ${widget.mobileNumber}",
+                          "+91 ${_maskMobile(widget.mobileNumber)}",
+                          textAlign: TextAlign.center,
                           style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                             color: AppColors.primary,
                           ),
                         ),
-
-                        const SizedBox(height: 32),
-
-                        // 🔹 OTP Fields
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: List.generate(6, (index) {
-                            return SizedBox(
-                              width: 48,
-                              child: TextField(
-                                controller: _controllers[index],
-                                focusNode: _focusNodes[index],
-                                keyboardType: TextInputType.number,
-                                maxLength: 1,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                                decoration: InputDecoration(
-                                  counterText: "",
-                                  filled: true,
-                                  fillColor: AppColors.white,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.border,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: const BorderSide(
-                                      color: AppColors.primary,
-                                      width: 1.5,
-                                    ),
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  if (value.isNotEmpty && index < 5) {
-                                    _focusNodes[index + 1].requestFocus();
-                                  } else if (value.isEmpty && index > 0) {
-                                    _focusNodes[index - 1].requestFocus();
-                                  }
-                                },
-                              ),
-                            );
-                          }),
-                        ),
-
-                        const SizedBox(height: 40),
-
-                        // 🔹 Verify Button
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: _verifyOtp,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: Text(
-                              "Verify OTP",
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.white,
-                              ),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
-                  ),
+
+                    const SizedBox(height: 40),
+
+                    // 🔹 OTP Fields
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: List.generate(6, (index) {
+                        return SizedBox(
+                          width: 48,
+                          child: TextField(
+                            controller: _controllers[index],
+                            focusNode: _focusNodes[index],
+                            keyboardType: TextInputType.number,
+                            maxLength: 1,
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.poppins(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary, // 👈 text color
+                            ),
+                            decoration: InputDecoration(
+                              counterText: "",
+                              filled: true,
+                              fillColor: AppColors.primary.withOpacity(
+                                0.07,
+                              ), // 👈 light primary bg
+                              // 🔹 Normal border
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1,
+                                ),
+                              ),
+
+                              // 🔹 Focused border
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide(
+                                  color: AppColors.primary,
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                            onChanged: (value) {
+                              if (value.isNotEmpty && index < 5) {
+                                _focusNodes[index + 1].requestFocus();
+                              } else if (value.isEmpty && index > 0) {
+                                _focusNodes[index - 1].requestFocus();
+                              }
+                            },
+                          ),
+                        );
+                      }),
+                    ),
+
+                    const SizedBox(height: 36),
+
+                    // 🔹 Verify OTP Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _verifyOtp,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          "Verify OTP",
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 🔹 Didn't receive code
+                    Text(
+                      "Didn’t you receive any code?",
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+
+                    const SizedBox(height: 6),
+
+                    // 🔹 Resend OTP
+                    TextButton(
+                      onPressed: () {
+                        // TODO: Call resend OTP API
+                      },
+                      child: Text(
+                        "Resend OTP",
+                        style: GoogleFonts.poppins(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  String _maskMobile(String mobile) {
+    if (mobile.length < 2) return mobile;
+    return "XXXXXXXX${mobile.substring(mobile.length - 2)}";
   }
 }

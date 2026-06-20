@@ -25,66 +25,8 @@ class DoctorDashboardResponseModel {
     return DoctorDashboardResponseModel(
       status: false,
       doctorDetails: null,
-      upcomingAppointments: [],
+      upcomingAppointments: const [],
     );
-  }
-}
-
-class UpcomingAppointment {
-  final String appointmentId;
-  final String patientName;
-  final String petName;
-  final String petType;
-  final DateTime appointmentDateTime;
-
-  UpcomingAppointment({
-    required this.appointmentId,
-    required this.patientName,
-    required this.petName,
-    required this.petType,
-    required this.appointmentDateTime,
-  });
-
-  factory UpcomingAppointment.fromJson(Map<String, dynamic> json) {
-    return UpcomingAppointment(
-      appointmentId: json['_id'] ?? '',
-      patientName: json['patient_name'] ?? '',
-      petName: json['pet_name'] ?? '',
-      petType: json['pet_type'] ?? '',
-      appointmentDateTime: DateTime.parse(json['appointment_time']),
-    );
-  }
-
-  /// UI-friendly formatted date
-  String get formattedDateTime {
-    return '${appointmentDateTime.day.toString().padLeft(2, '0')} '
-        '${_monthName(appointmentDateTime.month)} '
-        '${appointmentDateTime.year}, '
-        '${_formatTime(appointmentDateTime)}';
-  }
-
-  String _formatTime(DateTime time) {
-    final hour = time.hour > 12 ? time.hour - 12 : time.hour;
-    final period = time.hour >= 12 ? 'PM' : 'AM';
-    return '${hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')} $period';
-  }
-
-  String _monthName(int month) {
-    const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
-    ];
-    return months[month - 1];
   }
 }
 
@@ -93,12 +35,18 @@ class DoctorDetails {
   final String name;
   final String specialization;
   final String email;
+  final String mobileNumber;
+  final int experienceYears;
+  final String licenseNumber;
 
   DoctorDetails({
     required this.id,
     required this.name,
     required this.specialization,
     required this.email,
+    required this.mobileNumber,
+    required this.experienceYears,
+    required this.licenseNumber,
   });
 
   factory DoctorDetails.fromJson(Map<String, dynamic> json) {
@@ -107,6 +55,75 @@ class DoctorDetails {
       name: json['name'] ?? '',
       specialization: json['specialization'] ?? '',
       email: json['email'] ?? '',
+      mobileNumber: json['mobile_number'] ?? '',
+      experienceYears: json['experience_years'] ?? 0,
+      licenseNumber: json['license_number'] ?? '',
+    );
+  }
+}
+
+class UpcomingAppointment {
+  final String appointmentId;
+  final String userId;
+  final String doctorId;
+  final String date; // dd/MM/yyyy
+  final String time; // HH:mm
+  final String paymentStatus;
+  final UserDetails userDetails; // NEW
+
+  UpcomingAppointment({
+    required this.appointmentId,
+    required this.userId,
+    required this.doctorId,
+    required this.date,
+    required this.time,
+    required this.paymentStatus,
+    required this.userDetails,
+  });
+
+  factory UpcomingAppointment.fromJson(Map<String, dynamic> json) {
+    return UpcomingAppointment(
+      appointmentId: json['_id'] ?? '',
+      userId: json['user_id'] ?? '',
+      doctorId: json['doctor_id'] ?? '',
+      date: json['date'] ?? '',
+      time: json['time'] ?? '',
+      paymentStatus: json['payment_status'] ?? '',
+      userDetails: json['user_details'] != null
+          ? UserDetails.fromJson(json['user_details'])
+          : UserDetails(id: '', ownerName: '', email: '', mobileNumber: ''),
+    );
+  }
+
+  DateTime get appointmentDate {
+    final parts = date.split('/');
+    return DateTime(
+      int.parse(parts[2]),
+      int.parse(parts[1]),
+      int.parse(parts[0]),
+    );
+  }
+}
+
+class UserDetails {
+  final String id;
+  final String ownerName;
+  final String email;
+  final String mobileNumber;
+
+  UserDetails({
+    required this.id,
+    required this.ownerName,
+    required this.email,
+    required this.mobileNumber,
+  });
+
+  factory UserDetails.fromJson(Map<String, dynamic> json) {
+    return UserDetails(
+      id: json['id'] ?? '',
+      ownerName: json['owner_name'] ?? '',
+      email: json['email'] ?? '',
+      mobileNumber: json['mobile_number'] ?? '',
     );
   }
 }

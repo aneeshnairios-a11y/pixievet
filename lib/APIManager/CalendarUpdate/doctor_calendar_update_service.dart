@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
-import 'package:pixievet/APIManager/APIUtils/api_service_manager.dart';
-import 'package:pixievet/APIManager/CalendarUpdate/doctor_calendar_update_request_model.dart';
-import 'package:pixievet/APIManager/CalendarUpdate/doctor_calendar_update_response_model.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_service_manager.dart';
+import 'package:pixievet_app/APIManager/CalendarUpdate/doctor_calendar_update_request_model.dart';
+import 'package:pixievet_app/APIManager/CalendarUpdate/doctor_calendar_update_response_model.dart';
 
 class DoctorCalendarUpdateService {
   final ApiServiceManager _apiManager = ApiServiceManager();

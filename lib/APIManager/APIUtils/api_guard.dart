@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/APIManager/TokenVerify/token_verify_request_model.dart';
-import 'package:pixievet/APIManager/TokenVerify/token_verify_service.dart';
-import 'package:pixievet/Views/Login/login_page.dart';
-import 'package:pixievet/Utilities/device_utils.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_request_model.dart';
+import 'package:pixievet_app/APIManager/TokenVerify/token_verify_service.dart';
+import 'package:pixievet_app/Views/Login/login_page.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
 
 class ApiGuard {
   static Future<bool> verifySession(BuildContext context) async {

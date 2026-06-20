@@ -1,7 +1,8 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
-import 'package:pixievet/app_init_page.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/app_init_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,17 +17,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Pixievet',
       theme: ThemeData(
-        primaryColor: Color(0xFF2BB0A6),
-        scaffoldBackgroundColor: Color(0xFFF9FAFB),
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: const Color(0xFFF9FAFB),
 
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFF2BB0A6),
-          primary: Color(0xFF2BB0A6),
-          secondary: Color(0xFFFF8A65),
-          background: Color(0xFFF9FAFB),
+          seedColor: AppColors.primary,
+          primary: AppColors.primary,
+          secondary: const Color(0xFFFF8A65),
+          background: const Color(0xFFF9FAFB),
         ),
 
-        textTheme: TextTheme(
+        textTheme: const TextTheme(
           titleLarge: TextStyle(
             color: Color(0xFF1F2937),
             fontWeight: FontWeight.bold,
@@ -36,12 +37,12 @@ class MyApp extends StatelessWidget {
 
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xFF2BB0A6),
+            backgroundColor: const Color(0xFF2BB0A6),
             foregroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: EdgeInsets.symmetric(vertical: 14),
+            padding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
       ),

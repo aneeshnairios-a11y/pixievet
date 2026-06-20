@@ -1,24 +1,37 @@
+// ignore_for_file: use_build_context_synchronously, depend_on_referenced_packages
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/Views/PetDashboard/BookAppointment/booking_success_page.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
+import 'package:pixievet_app/APIManager/BookAppointment/book_appointment_request_model.dart';
+import 'package:pixievet_app/APIManager/BookAppointment/book_appointment_service.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/Utilities/device_utils.dart';
+import 'package:pixievet_app/Views/PetDashboard/BookAppointment/booking_success_page.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:intl/intl.dart';
 
 class BookingSummaryPage extends StatelessWidget {
   final DateTime selectedDate;
   final String selectedTime;
   final double amount;
+  final String petId;
 
   const BookingSummaryPage({
     super.key,
     required this.selectedDate,
     required this.selectedTime,
     required this.amount,
+    required this.petId,
   });
 
   @override
   Widget build(BuildContext context) {
     const double gst = 10.0;
     final double totalAmount = amount + gst;
+    if (kDebugMode) {
+      print("Pettttttt $petId");
+    }
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -184,7 +197,7 @@ class BookingSummaryPage extends StatelessWidget {
   Widget _paymentButton(BuildContext context, double totalAmount) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.white,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
@@ -199,11 +212,7 @@ class BookingSummaryPage extends StatelessWidget {
             ),
           ),
           onPressed: () {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (_) => const BookingSuccessPage()),
-              (route) => false,
-            );
+            _makePayment(context, petId);
           },
           child: Text(
             'Make Payment • ₹${totalAmount.toStringAsFixed(2)}',
@@ -216,5 +225,45 @@ class BookingSummaryPage extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  // ---------------- API CALL ----------------
+
+  Future<void> _makePayment(BuildContext context, String petID) async {
+    final session = SessionManager();
+
+    final request = BookAppointmentRequestModel(
+      userId: await session.getUserId() ?? '',
+      token: await session.getToken() ?? '',
+      deviceId: await DeviceUtils.getDeviceId(),
+      date:
+          '${selectedDate.day.toString().padLeft(2, '0')}/'
+          '${selectedDate.month.toString().padLeft(2, '0')}/'
+          '${selectedDate.year}',
+      time: convertTo24Hour(selectedTime),
+      doctorId: await session.getDoctorId() ?? '',
+      petId: petID,
+    );
+
+    final service = BookAppointmentService();
+    final response = await service.bookAppointment(request);
+
+    if (!response.status) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(response.message)));
+      return;
+    }
+
+    // ✅ SUCCESS
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => BookingSuccessPage()),
+    );
+  }
+
+  String convertTo24Hour(String time12h) {
+    final dateTime = DateFormat('hh:mm a').parse(time12h);
+    return DateFormat('HH:mm').format(dateTime);
   }
 }

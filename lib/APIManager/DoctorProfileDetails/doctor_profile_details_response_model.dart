@@ -38,6 +38,7 @@ class DoctorProfileData {
   final String specialization;
   final int experienceYears;
   final String licenseNumber;
+  final String? profileImage; // 👈 new field
 
   DoctorProfileData({
     required this.id,
@@ -47,6 +48,7 @@ class DoctorProfileData {
     required this.specialization,
     required this.experienceYears,
     required this.licenseNumber,
+    this.profileImage,
   });
 
   factory DoctorProfileData.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,7 @@ class DoctorProfileData {
       experienceYears:
           profile['experience_years'] ?? json['experience_years'] ?? 0,
       licenseNumber: profile['license_number'] ?? json['license_number'] ?? '',
+      profileImage: json['profile_image'], // 👈 fetch from response
     );
   }
 }

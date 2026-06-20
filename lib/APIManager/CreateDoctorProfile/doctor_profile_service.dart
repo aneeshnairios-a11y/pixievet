@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
-import 'package:pixievet/APIManager/CreateDoctorProfile/doctor_profile_request_model.dart';
-import 'package:pixievet/APIManager/CreateDoctorProfile/doctor_profile_response_model.dart';
-import 'package:pixievet/APIManager/APIUtils/api_constants.dart';
-import 'package:pixievet/APIManager/APIUtils/api_service_manager.dart';
+import 'package:pixievet_app/APIManager/CreateDoctorProfile/doctor_profile_request_model.dart';
+import 'package:pixievet_app/APIManager/CreateDoctorProfile/doctor_profile_response_model.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_constants.dart';
+import 'package:pixievet_app/APIManager/APIUtils/api_service_manager.dart';
 
 class DoctorProfileService {
   final ApiServiceManager _apiManager = ApiServiceManager();
@@ -11,10 +11,25 @@ class DoctorProfileService {
     DoctorProfileRequestModel request,
   ) async {
     try {
-      final response = await _apiManager.post(
-        ApiConstants
-            .createDoctorProfile, // Make sure this points to 'https://pixievet.vercel.app/doctor/register'
-        body: request.toJson(),
+      final formData = FormData.fromMap({
+        'user_id': request.userId,
+        'token': request.token,
+        'device_id': request.deviceId,
+        'name': request.name,
+        'email': request.email,
+        'specialization': request.specialization,
+        'experience_years': request.experienceYears.toString(),
+        'license_number': request.licenseNumber,
+        if (request.profileImage != null)
+          'profile_image': await MultipartFile.fromFile(
+            request.profileImage!.path,
+            filename: request.profileImage!.path.split('/').last,
+          ),
+      });
+
+      final response = await _apiManager.postMultipart(
+        ApiConstants.createDoctorProfile,
+        formData,
       );
 
       final profileResponse = DoctorProfileResponseModel.fromJson(
@@ -34,6 +49,4 @@ class DoctorProfileService {
       return DoctorProfileResponseModel.failure('Unexpected error occurred');
     }
   }
-
-  Future<dynamic> fetchDoctorProfile(DoctorProfileRequestModel request) async {}
 }

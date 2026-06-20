@@ -2,10 +2,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pixievet/APIManager/SessionManager/session_manager.dart';
-import 'package:pixievet/Views/Login/login_page.dart';
-import 'package:pixievet/Utilities/app_colors.dart';
-import 'package:pixievet/Utilities/app_images.dart';
+import 'package:pixievet_app/APIManager/SessionManager/session_manager.dart';
+import 'package:pixievet_app/Views/Login/login_page.dart';
+import 'package:pixievet_app/Utilities/app_colors.dart';
+import 'package:pixievet_app/Utilities/app_images.dart';
 
 class PetProfilePage extends StatefulWidget {
   const PetProfilePage({super.key});
@@ -263,12 +263,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: child,
@@ -304,11 +300,11 @@ class _PetProfilePageState extends State<PetProfilePage> {
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.border),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.border),
+            borderSide: const BorderSide(color: AppColors.border),
           ),
         ),
       ),
@@ -321,7 +317,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
       children: [
         Container(
           padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             shape: BoxShape.circle,
             gradient: LinearGradient(
               colors: [AppColors.primary, AppColors.primaryDark],
@@ -329,7 +325,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
               end: Alignment.bottomRight,
             ),
           ),
-          child: CircleAvatar(
+          child: const CircleAvatar(
             radius: 60,
             backgroundImage: AssetImage(AppImages.petAvatar),
           ),
@@ -339,7 +335,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
           right: 0,
           child: Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.primary,
               shape: BoxShape.circle,
             ),

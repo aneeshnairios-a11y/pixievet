@@ -1,20 +1,31 @@
 class PatientSlotsResponseModel {
   final bool status;
+  final DoctorInfo? doctor;
   final List<PatientSlot> slots;
+  final int totalAvailableSlots;
   final String message;
 
   PatientSlotsResponseModel({
     required this.status,
+    required this.doctor,
     required this.slots,
-    required this.message,
+    required this.totalAvailableSlots,
+    this.message = '',
   });
 
+  /// ✅ ADD THIS
   factory PatientSlotsResponseModel.fromJson(Map<String, dynamic> json) {
     return PatientSlotsResponseModel(
       status: json['status'] ?? false,
-      slots: json['slots'] != null
-          ? (json['slots'] as List).map((e) => PatientSlot.fromJson(e)).toList()
+      doctor: json['doctor'] != null
+          ? DoctorInfo.fromJson(json['doctor'])
+          : null,
+      slots: json['available_slots'] != null
+          ? (json['available_slots'] as List)
+                .map((e) => PatientSlot.fromTime(e))
+                .toList()
           : [],
+      totalAvailableSlots: json['total_available_slots'] ?? 0,
       message: json['message'] ?? '',
     );
   }
@@ -22,30 +33,48 @@ class PatientSlotsResponseModel {
   factory PatientSlotsResponseModel.failure(String message) {
     return PatientSlotsResponseModel(
       status: false,
+      doctor: null,
       slots: [],
+      totalAvailableSlots: 0,
       message: message,
     );
   }
 }
 
-class PatientSlot {
-  final int slotId;
-  final String slotTime; // 24h format e.g. 09:30
-  final String slotStatus; // available / unavailable
+class DoctorInfo {
+  final String doctorId;
+  final String doctorName;
+  final String specialization;
+  final int experienceYears;
+  final String date;
 
-  PatientSlot({
-    required this.slotId,
-    required this.slotTime,
-    required this.slotStatus,
+  DoctorInfo({
+    required this.doctorId,
+    required this.doctorName,
+    required this.specialization,
+    required this.experienceYears,
+    required this.date,
   });
 
-  factory PatientSlot.fromJson(Map<String, dynamic> json) {
-    return PatientSlot(
-      slotId: json['slotId'] ?? 0,
-      slotTime: json['slotTime'] ?? '',
-      slotStatus: json['slotStatus'] ?? '',
+  factory DoctorInfo.fromJson(Map<String, dynamic> json) {
+    return DoctorInfo(
+      doctorId: json['doctor_id'] ?? '',
+      doctorName: json['doctor_name'] ?? '',
+      specialization: json['specialization'] ?? '',
+      experienceYears: json['experience_years'] ?? 0,
+      date: json['date'] ?? '',
     );
   }
+}
 
-  bool get isAvailable => slotStatus == 'available';
+class PatientSlot {
+  final String slotTime; // "09:30"
+
+  PatientSlot({required this.slotTime});
+
+  factory PatientSlot.fromTime(String time) {
+    return PatientSlot(slotTime: time);
+  }
+
+  bool get isAvailable => true; // all returned slots are available
 }
