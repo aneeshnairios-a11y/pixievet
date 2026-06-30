@@ -7,18 +7,19 @@ plugins {
 
 android {
     namespace = "com.clinic.pixievet"  // <-- your app’s package name
-    compileSdk = 36
+    compileSdk = flutter.compileSdkVersion
 
     defaultConfig {
         applicationId = "com.clinic.pixievet"
         minSdk = flutter.minSdkVersion
-        targetSdk = 34
+        targetSdk = flutter.targetSdkVersion
         versionCode = 1
         versionName = "1.0"
     }
 
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
         }
